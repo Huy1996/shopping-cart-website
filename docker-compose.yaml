@@ -1,0 +1,48 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - backend
+    volumes:
+      - mongo-data:/data/db
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: ./shopping-cart-api
+    depends_on:
+      - mongodb
+    volumes:
+      - /app/backend/node_modules
+      - ./shopping-cart-api:/app/backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./shopping-cart-api/.env
+    networks:
+      - backend
+      - frontend
+  web:
+    build:
+      dockerfile: Dockerfile
+      context: ./react_shopping_cart
+    depends_on:
+      - api
+      - mongodb
+    volumes:
+      - /app/frontend/node_modules
+      - ./react_shopping_cart:/app/frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - frontend
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+volumes:
+  mongo-data:
+    driver: local
